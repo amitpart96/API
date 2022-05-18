@@ -1,0 +1,215 @@
+openapi: 3.0.0
+info:
+  title: Simple Inventory API
+  description: This is a simple API
+  contact:
+    email: you@your-company.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/amitpart96/food-API/1.0.0
+  description: SwaggerHub API Auto Mocking
+tags:
+- name: users
+  description: Registered users
+- name: recipes
+  description: Recipes stored in the system
+paths:
+  /user/register:
+    post:
+      tags:
+      - users
+      summary: A new user from the client is added to the server.
+      description: A JSON object contains all the details about the new user.
+      requestBody:
+        description: user to add
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/register'
+        required: true
+      responses:
+        "201":
+          description: A new user has been added
+        "400":
+          description: wrong input parameters
+  /user/login:
+    post:
+      tags:
+      - users
+      summary: A user from the client is login to the system.
+      description: A JSON object contains username and password for verification.
+      requestBody:
+        description: user verification
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/login'
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Invalid username/password
+  /recipes/randomalRecipes:
+    get:
+      tags:
+      - recipes
+      summary: get 3 randomal recipes from the server.
+      responses:
+        "200":
+          description: The 3 randomal recipes.
+          content:
+            application/json:
+              schema:
+                type: string
+        "400":
+          description: No recipes found
+  /user/lastViewRecipes{username}:
+    get:
+      tags:
+      - users
+      summary: Get 3 last view recipes by user from the server.
+      description: Get from the client a username and returns 3 last view recipes
+        by user.
+      parameters:
+      - name: username
+        in: path
+        description: The user name
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The 3 last view recieps by user.
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: User not found
+  /recipes/getRecipe{id}:
+    get:
+      tags:
+      - recipes
+      summary: Get recipe's data from the server.
+      description: Get from the client a recipe's id and returns recipe's data.
+      parameters:
+      - name: id
+        in: path
+        description: The recipe id
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The recipe's data
+        "404":
+          description: Recipe not found
+components:
+  schemas:
+    register:
+      type: object
+      properties:
+        username:
+          maxLength: 8
+          minLength: 3
+          type: string
+          description: username contains between 3 to 8 letters only
+          example: omeradam
+        firstName:
+          type: string
+          description: user's first name
+          example: Omer
+        lastName:
+          type: string
+          description: user's last name
+          example: Adam
+        country:
+          type: string
+          description: user's country
+          example: Israel
+        password:
+          maxLength: 10
+          minLength: 5
+          type: string
+          description: "password contains between 5 to 10 chars, at least one of them\
+            \ is a number and a special char"
+          format: password
+          example: oa123!
+        passwordConfirmation:
+          maxLength: 10
+          minLength: 5
+          type: string
+          description: should have the same password
+          format: password
+          example: oa123!
+        email:
+          type: string
+          description: user's email
+          format: email
+          example: a@gmail.com
+    login:
+      type: object
+      properties:
+        username:
+          type: string
+          example: omeradam
+        password:
+          type: string
+          format: password
+          example: oa123!
+    recipe:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Strawberry cake
+        picture:
+          type: string
+          format: URL
+        time:
+          type: number
+          description: Preparation time in minutes.
+          example: 60
+        vegetarian:
+          type: boolean
+          description: Is vegetarian? (1=yes 0=no)
+          example: false
+        vegan:
+          type: boolean
+          description: Is vegan? (1=yes 0=no)
+          example: false
+        ingredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/recipe_ingredients'
+        instructions:
+          type: string
+          description: Instructions for preparing the dish.
+          example: 1.Mix all the ingredients in a bowl. 2. Put in a mold. 3.Put in
+            the oven at 180 degrees for 20 minutes.
+        Number of servings:
+          type: number
+          example: 3
+    recipe_ingredients:
+      type: object
+      properties:
+        Ingredient:
+          type: string
+          description: Ingredient name
+          example: Strawberry
+        Quantity:
+          type: number
+          example: 10
+        Unit of measure:
+          type: string
+          description: "Unit of measure (kg,cups,Spoon,unit...)"
+          example: unit
+      example: null
