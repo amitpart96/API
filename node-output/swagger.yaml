@@ -110,8 +110,141 @@ paths:
       responses:
         "200":
           description: The recipe's data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipe'
         "404":
           description: Recipe not found
+  /recipes/searchRecipe:
+    get:
+      tags:
+      - recipes
+      summary: search recipe in server
+      description: Get from the client a recipe name or food name (and amount of recipes
+        - optional and filter - optional) returns search results (just preview).
+      parameters:
+      - name: nameRecipe
+        in: query
+        description: The recipe name
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: foodName
+        in: query
+        description: The food name
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: amount
+        in: query
+        description: The amount of recipes that will return.
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: number
+      - name: filter
+        in: query
+        description: which filter
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The search result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipe'
+        "404":
+          description: recipes not found
+  /recipes/addRecipe:
+    post:
+      tags:
+      - recipes
+      summary: A new recipe from the client is added to the server.
+      description: A JSON object contains all the details about the new recipe.
+      requestBody:
+        description: recipe to add
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/recipe'
+        required: true
+      responses:
+        "201":
+          description: A new recipe has been added
+        "400":
+          description: wrong input parameters
+  /user/getFavorites{id}:
+    get:
+      tags:
+      - users
+      summary: Get user's favorites recipes data from the server.
+      description: Get from the client a user id and returns user's favorites recipes
+        data
+      parameters:
+      - name: id
+        in: path
+        description: The user id
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The user's favorites recipes data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipe'
+        "404":
+          description: user not found
+  /user/getUserRecipes{id}:
+    get:
+      tags:
+      - users
+      summary: Get user's recipes data from the server.
+      description: Get from the client a user id and returns user's recipes data (owner).
+      parameters:
+      - name: id
+        in: path
+        description: The user id
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The user's owner recipes data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipe'
+        "404":
+          description: user not found
+  /user/getfamilyRecipes:
+    get:
+      tags:
+      - recipes
+      summary: Get family recipes data from the server.
+      description: Get from the client a request and returns family recipes data.
+      responses:
+        "200":
+          description: The family recipes data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipe'
 components:
   schemas:
     register:
@@ -171,6 +304,10 @@ components:
         name:
           type: string
           example: Strawberry cake
+        owner:
+          type: string
+          description: recipe owner (username)
+          example: omeradam
         picture:
           type: string
           format: URL
