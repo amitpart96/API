@@ -28,18 +28,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/register'
+              $ref: '#/components/schemas/User'
         required: true
       responses:
         "201":
           description: A new user has been added
         "400":
           description: wrong input parameters
+        "401":
+          description: Username already exists.
   /user/login:
     post:
       tags:
       - users
-      summary: A user from the client is login to the system.
+      summary: logs user into the system.
       description: A JSON object contains username and password for verification.
       requestBody:
         description: user verification
@@ -53,20 +55,22 @@ paths:
           description: Successful operation
         "400":
           description: Invalid username/password
-  /recipes/randomalRecipes:
+  /recipes/randomRecipes:
     get:
       tags:
       - recipes
-      summary: get 3 randomal recipes from the server.
+      summary: get 3 random recipes from the server.
       responses:
         "200":
-          description: The 3 randomal recipes.
+          description: The 3 random recipes.
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/recipe_header'
         "400":
           description: No recipes found
+        "201":
+          description: 3 random recipes.
   /user/lastViewRecipes{username}:
     get:
       tags:
@@ -84,14 +88,16 @@ paths:
         schema:
           type: string
       responses:
-        "200":
+        "201":
           description: The 3 last view recieps by user.
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/recipe_header'
         "404":
           description: User not found
+        "401":
+          description: No last viewed recipes.
   /recipes/getRecipe{id}:
     get:
       tags:
@@ -116,73 +122,59 @@ paths:
                 $ref: '#/components/schemas/recipe'
         "404":
           description: Recipe not found
-  /recipes/searchRecipe:
+  /recipes/search:
     get:
       tags:
       - recipes
-      summary: search recipe in server
-      description: Get from the client a recipe name or food name (and amount of recipes
-        - optional and filter - optional) returns search results (just preview).
+      summary: Get recipe's that match the search query from the server
+      description: Get from the client a query with all the details
       parameters:
-      - name: nameRecipe
+      - name: name
         in: query
         description: The recipe name
-        required: false
+        required: true
         style: form
         explode: true
-        schema:
-          type: string
-      - name: foodName
+      - name: count
         in: query
-        description: The food name
+        description: The amount of results to retrive from the server
         required: false
         style: form
         explode: true
-        schema:
-          type: string
-      - name: amount
+      - name: Diet
         in: query
-        description: The amount of recipes that will return.
+        description: Spiceal diet recipes
         required: false
         style: form
         explode: true
-        schema:
-          type: number
-      - name: filter
+      - name: Cuisines
         in: query
-        description: which filter
+        description: the origin of the recipe
         required: false
         style: form
         explode: true
-        schema:
-          type: string
+      - name: Intolerances
+        in: query
+        description: the user will spacify any intolerances so his recipes will not
+          have it.
+        required: false
+        style: form
+        explode: true
       responses:
         "200":
-          description: The search result.
+          description: The recipe's data
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/recipe'
-        "404":
-          description: recipes not found
-  /recipes/addRecipe:
-    post:
-      tags:
-      - recipes
-      summary: A new recipe from the client is added to the server.
-      description: A JSON object contains all the details about the new recipe.
-      requestBody:
-        description: recipe to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/recipe'
-        required: true
-      responses:
+                $ref: '#/components/schemas/recipe_header'
         "201":
-          description: A new recipe has been added
-        "400":
-          description: wrong input parameters
+          description: The recipe's data - less then the chosen amoune
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipe_header'
+        "404":
+          description: No results for given query
   /user/getFavorites{id}:
     get:
       tags:
@@ -200,14 +192,55 @@ paths:
         schema:
           type: string
       responses:
-        "200":
+        "201":
           description: The user's favorites recipes data
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/recipe'
+                $ref: '#/components/schemas/recipe_header'
         "404":
           description: user not found
+  /user/addToFav{recipeID}:
+    put:
+      tags:
+      - users
+      summary: Updated user favorite recipes
+      description: This can only be done by the logged in user.
+      parameters:
+      - name: recipeID
+        in: path
+        description: name of the recipe need to be added to user favorite recipes
+          array
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Recipe added to user favorites
+        "400":
+          description: Invalid recipe id supplied
+  /recipe/AddRecipe:
+    post:
+      tags:
+      - recipes
+      summary: Adding a new recipe by registered user to the server.
+      description: A JSON object contains all the details about the new recipe.
+      requestBody:
+        description: recipe to add
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/recipe'
+        required: true
+      responses:
+        "201":
+          description: A new recipe has been created and saved
+        "400":
+          description: Wrong input parameters
+        "401":
+          description: recipe name already exist
   /user/getUserRecipes{id}:
     get:
       tags:
@@ -224,15 +257,15 @@ paths:
         schema:
           type: string
       responses:
-        "200":
+        "201":
           description: The user's owner recipes data
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/recipe'
+                $ref: '#/components/schemas/recipe_header'
         "404":
           description: user not found
-  /user/getfamilyRecipes:
+  /recipe/getfamilyRecipes:
     get:
       tags:
       - recipes
@@ -247,7 +280,7 @@ paths:
                 $ref: '#/components/schemas/recipe'
 components:
   schemas:
-    register:
+    User:
       type: object
       properties:
         username:
@@ -276,18 +309,31 @@ components:
             \ is a number and a special char"
           format: password
           example: oa123!
-        passwordConfirmation:
-          maxLength: 10
-          minLength: 5
-          type: string
-          description: should have the same password
-          format: password
-          example: oa123!
         email:
           type: string
           description: user's email
           format: email
           example: a@gmail.com
+        favorites:
+          type: array
+          description: user's favorite recipes
+          example:
+          - 10
+          - 18
+          items:
+            type: string
+            description: recipe id
+            example: "10"
+        myrecipes:
+          type: array
+          description: holds the recipes id that the user created
+          example:
+          - 1
+          - 28
+          items:
+            type: string
+            description: recipe id
+            example: "1"
     login:
       type: object
       properties:
@@ -323,6 +369,10 @@ components:
           type: boolean
           description: Is vegan? (1=yes 0=no)
           example: false
+        gluten free:
+          type: boolean
+          description: Is gluten free? (1=yes 0=no)
+          example: false
         ingredients:
           type: array
           items:
@@ -335,6 +385,35 @@ components:
         Number of servings:
           type: number
           example: 3
+    recipe_header:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Strawberry cake
+        picture:
+          type: string
+          format: URL
+        time:
+          type: number
+          description: Preparation time in minutes.
+          example: 60
+        vegetarian:
+          type: boolean
+          description: Is vegetarian? (1=yes 0=no)
+          example: false
+        vegan:
+          type: boolean
+          description: Is vegan? (1=yes 0=no)
+          example: false
+        gluten free:
+          type: boolean
+          description: Is gluten free? (1=yes 0=no)
+          example: false
+        likes:
+          type: number
+          description: Number of likes the recipe recived from users
+          example: 500
     recipe_ingredients:
       type: object
       properties:
