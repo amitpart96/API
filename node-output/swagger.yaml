@@ -1,16 +1,17 @@
 openapi: 3.0.0
 info:
-  title: Simple Inventory API
-  description: This is a simple API
+  title: Grandma & Others Recipes
+  description: |
+    This is a server where you can create and share your recipes with other users.
+    you can find the best recipes for you and save them for later.
   contact:
-    email: you@your-company.com
+    email: yuvalf301@gmail.com
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   version: 1.0.0
 servers:
-- url: https://virtserver.swaggerhub.com/amitpart96/food-API/1.0.0
-  description: SwaggerHub API Auto Mocking
+- url: /
 tags:
 - name: users
   description: Registered users
@@ -32,10 +33,10 @@ paths:
         required: true
       responses:
         "201":
-          description: A new user has been added
+          description: A new user has been created
         "400":
           description: wrong input parameters
-        "401":
+        "204":
           description: Username already exists.
   /user/login:
     post:
@@ -53,7 +54,7 @@ paths:
       responses:
         "200":
           description: Successful operation
-        "400":
+        "404":
           description: Invalid username/password
   /recipes/randomRecipes:
     get:
@@ -67,28 +68,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/recipe_header'
-        "400":
+        "404":
           description: No recipes found
-        "201":
-          description: 3 random recipes.
-  /user/lastViewRecipes{username}:
+  /user/lastViewRecipes{userID}:
     get:
       tags:
       - users
       summary: Get 3 last view recipes by user from the server.
-      description: Get from the client a username and returns 3 last view recipes
-        by user.
+      description: Get from the client a id and returns 3 last view recipes by user.
       parameters:
-      - name: username
+      - name: userID
         in: path
-        description: The user name
+        description: The user id
         required: true
         style: simple
         explode: false
         schema:
           type: string
       responses:
-        "201":
+        "200":
           description: The 3 last view recieps by user.
           content:
             application/json:
@@ -96,16 +94,16 @@ paths:
                 $ref: '#/components/schemas/recipe_header'
         "404":
           description: User not found
-        "401":
+        "204":
           description: No last viewed recipes.
-  /recipes/getRecipe{id}:
+  /recipes/getRecipe{RecipeID}:
     get:
       tags:
       - recipes
       summary: Get recipe's data from the server.
       description: Get from the client a recipe's id and returns recipe's data.
       parameters:
-      - name: id
+      - name: RecipeID
         in: path
         description: The recipe id
         required: true
@@ -135,24 +133,71 @@ paths:
         required: true
         style: form
         explode: true
+        schema:
+          type: string
       - name: count
         in: query
         description: The amount of results to retrive from the server
         required: false
         style: form
         explode: true
+        schema:
+          type: number
+          enum:
+          - 5
+          - 10
+          - 15
+          default: 5
       - name: Diet
         in: query
         description: Spiceal diet recipes
         required: false
         style: form
         explode: true
+        schema:
+          type: string
+          enum:
+          - None
+          - Gluten Free
+          - Ketogenic
+          - Vegetarian
+          - Lacto-Vegetarian
+          - Ovo-Vegetarian
+          - Vegan
+          - Pescetarian
+          - Paleo
+          - Primal
+          - Low FODMAP
+          - Whole30
+          default: None
       - name: Cuisines
         in: query
         description: the origin of the recipe
         required: false
         style: form
         explode: true
+        schema:
+          type: string
+          enum:
+          - None
+          - African
+          - American
+          - British
+          - Cajun
+          - Chinese
+          - Caribbean
+          - European
+          - French
+          - German
+          - Greek
+          - Indian
+          - Irish
+          - Italian
+          - Japanese
+          - Jewish
+          - Mexican
+          - Spanish
+          default: None
       - name: Intolerances
         in: query
         description: the user will spacify any intolerances so his recipes will not
@@ -160,6 +205,23 @@ paths:
         required: false
         style: form
         explode: true
+        schema:
+          type: string
+          enum:
+          - None
+          - Dairy
+          - Egg
+          - Gluten
+          - Peanut
+          - Grain
+          - Seafood
+          - Sesame
+          - Shellfish
+          - Soy
+          - Sulfite
+          - Tree Nut
+          - Wheat
+          default: None
       responses:
         "200":
           description: The recipe's data
@@ -167,7 +229,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/recipe_header'
-        "201":
+        "204":
           description: The recipe's data - less then the chosen amoune
           content:
             application/json:
@@ -175,7 +237,7 @@ paths:
                 $ref: '#/components/schemas/recipe_header'
         "404":
           description: No results for given query
-  /user/getFavorites{id}:
+  /user/getFavorites{UserID}:
     get:
       tags:
       - users
@@ -183,7 +245,7 @@ paths:
       description: Get from the client a user id and returns user's favorites recipes
         data
       parameters:
-      - name: id
+      - name: UserID
         in: path
         description: The user id
         required: true
@@ -192,12 +254,12 @@ paths:
         schema:
           type: string
       responses:
-        "201":
+        "200":
           description: The user's favorites recipes data
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/recipe_header'
+                $ref: '#/components/schemas/User/properties/favorites'
         "404":
           description: user not found
   /user/addToFav{recipeID}:
@@ -219,7 +281,7 @@ paths:
       responses:
         "200":
           description: Recipe added to user favorites
-        "400":
+        "404":
           description: Invalid recipe id supplied
   /recipe/AddRecipe:
     post:
@@ -239,16 +301,16 @@ paths:
           description: A new recipe has been created and saved
         "400":
           description: Wrong input parameters
-        "401":
+        "204":
           description: recipe name already exist
-  /user/getUserRecipes{id}:
+  /user/getUserRecipes{UserID}:
     get:
       tags:
       - users
       summary: Get user's recipes data from the server.
       description: Get from the client a user id and returns user's recipes data (owner).
       parameters:
-      - name: id
+      - name: UserID
         in: path
         description: The user id
         required: true
@@ -257,12 +319,12 @@ paths:
         schema:
           type: string
       responses:
-        "201":
+        "200":
           description: The user's owner recipes data
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/recipe_header'
+                $ref: '#/components/schemas/User/properties/myrecipes'
         "404":
           description: user not found
   /recipe/getfamilyRecipes:
